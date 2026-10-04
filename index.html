@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Low Latency Coffee</title>
+<meta name="description" content="Small-batch coffee, roasted to order. Minimal lag. Sign up to hear when the first roasts are ready.">
+<meta property="og:title" content="Low Latency Coffee">
+<meta property="og:description" content="Small-batch coffee, roasted to order. Minimal lag.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://lowlatencycoffee.com/">
+<meta name="theme-color" content="#E3E4D3" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1F1814" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%232A1D17'/%3E%3Cpath d='M8 18 C14 18 16 48 22 48 C34 48 42 26 56 24' fill='none' stroke='%23E3E4D3' stroke-width='6' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bean: #E3E4D3;      /* green-coffee pale, page background */
+    --ink: #2A1D17;       /* dark roast, text */
+    --muted: #625D4C;     /* olive grey, secondary text */
+    --grid: #C9CBB5;      /* faint graph lines */
+    --cherry: #8E1F2B;    /* coffee-cherry red, the roast curve */
+    --field: #F2F2E8;     /* input background */
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bean: #1F1814; --ink: #E6E4D4; --muted: #A9A491;
+      --grid: #3A302A; --cherry: #E0606B; --field: #2A211C;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bean: #1F1814; --ink: #E6E4D4; --muted: #A9A491;
+    --grid: #3A302A; --cherry: #E0606B; --field: #2A211C;
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--bean);
+    color: var(--ink);
+    font-family: "IBM Plex Sans", system-ui, sans-serif;
+    font-size: 1.0625rem;
+    line-height: 1.6;
+  }
+  a { color: inherit; text-underline-offset: 0.2em; text-decoration-thickness: 1px; }
+  a:hover { color: var(--cherry); }
+  :focus-visible { outline: 2px solid var(--cherry); outline-offset: 3px; border-radius: 2px; }
+
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+
+  header.top {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding-top: 28px; gap: 16px; flex-wrap: wrap;
+  }
+  .wordmark {
+    font-family: "Bricolage Grotesque", sans-serif;
+    font-weight: 700; font-size: 1.125rem; letter-spacing: -0.01em;
+    text-decoration: none;
+  }
+  nav.social { display: flex; gap: 20px; font-size: 0.9375rem; }
+
+  .hero { padding-top: clamp(56px, 11vw, 120px); }
+  h1 {
+    font-family: "Bricolage Grotesque", sans-serif;
+    font-variation-settings: "wdth" 78;
+    font-weight: 800;
+    font-size: clamp(3rem, 10vw, 7.25rem);
+    line-height: 0.92;
+    letter-spacing: -0.03em;
+    margin: 0;
+    max-width: 11ch;
+  }
+
+  /* The roast curve: the page's one bold element */
+  .curve { margin: clamp(32px, 6vw, 56px) 0 0; }
+  .curve svg { display: block; width: 100%; height: auto; overflow: visible; }
+  .curve .gridline { stroke: var(--grid); stroke-width: 1; }
+  .curve .line {
+    fill: none; stroke: var(--cherry); stroke-width: 4;
+    stroke-linecap: round; stroke-linejoin: round;
+    stroke-dasharray: 1400; stroke-dashoffset: 1400;
+    animation: draw 2.6s cubic-bezier(.45,.05,.25,1) .2s forwards;
+  }
+  .curve .mark { fill: var(--bean); stroke: var(--cherry); stroke-width: 3; r: 7px; }
+  .curve .label { fill: var(--muted); font-family: "IBM Plex Sans", sans-serif; font-size: 15px; }
+  .curve .axis { fill: var(--muted); font-family: "IBM Plex Sans", sans-serif; font-size: 13px; }
+  .curve .marks { opacity: 0; animation: appear .5s ease 2.5s forwards; }
+  .curve figcaption { color: var(--muted); font-size: 0.875rem; margin-top: 10px; }
+  @keyframes draw { to { stroke-dashoffset: 0; } }
+  @keyframes appear { to { opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) {
+    .curve .line { animation: none; stroke-dashoffset: 0; }
+    .curve .marks { animation: none; opacity: 1; }
+  }
+
+  .body {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 48px;
+    padding: clamp(48px, 8vw, 88px) 0 clamp(56px, 8vw, 96px);
+  }
+  .body p { margin: 0 0 1em; max-width: 34em; }
+  h2 {
+    font-family: "Bricolage Grotesque", sans-serif;
+    font-weight: 700; font-size: 1.5rem; line-height: 1.2;
+    letter-spacing: -0.01em; margin: 0 0 12px;
+  }
+
+  form.signup { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+  form.signup label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  form.signup input[type="email"] {
+    flex: 1 1 220px; min-width: 0;
+    font: inherit; color: var(--ink); background: var(--field);
+    border: 1.5px solid var(--ink); border-radius: 6px;
+    padding: 12px 14px;
+  }
+  form.signup input::placeholder { color: var(--muted); }
+  form.signup button {
+    font: inherit; font-weight: 600; cursor: pointer;
+    color: var(--bean); background: var(--ink);
+    border: 1.5px solid var(--ink); border-radius: 6px;
+    padding: 12px 18px;
+  }
+  form.signup button:hover { background: var(--cherry); border-color: var(--cherry); }
+  form.signup button:disabled { opacity: .6; cursor: default; }
+  .hint { color: var(--muted); font-size: 0.875rem; margin-top: 10px; }
+  .status { font-weight: 500; margin-top: 10px; min-height: 1.6em; }
+  .status.error { color: var(--cherry); }
+
+  footer {
+    border-top: 1px solid var(--grid);
+    padding: 24px 0 40px; color: var(--muted); font-size: 0.875rem;
+    display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+  }
+
+  @media (max-width: 720px) {
+    .body { grid-template-columns: 1fr; gap: 32px; }
+    .curve .label { font-size: 38px; }
+    .curve .line { stroke-width: 9; }
+    .curve .mark { stroke-width: 5; r: 12px; }
+    .curve .axis { display: none; }
+    .wrap { padding: 0 16px; }
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="top">
+      <a class="wordmark" href="/">Low Latency Coffee</a>
+      <nav class="social" aria-label="Social">
+        <a href="https://www.instagram.com/lowlatencycoffee">Instagram</a>
+        <a href="https://www.tiktok.com/@lowlatencycoffee">TikTok</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero">
+        <h1>Roasted to order. Minimal lag.</h1>
+
+        <figure class="curve">
+          <svg viewBox="0 0 1000 300" role="img" aria-labelledby="curve-title">
+            <title id="curve-title">A coffee roast curve: bean temperature dips after the beans go in, then climbs steadily through first crack until the roast is dropped.</title>
+            <g aria-hidden="true">
+              <line class="gridline" x1="0" y1="60" x2="1000" y2="60"/>
+              <line class="gridline" x1="0" y1="140" x2="1000" y2="140"/>
+              <line class="gridline" x1="0" y1="220" x2="1000" y2="220"/>
+              <line class="gridline" x1="0" y1="290" x2="1000" y2="290"/>
+              <text class="axis" x="0" y="50">bean temperature</text>
+              <text class="axis" x="1000" y="284" text-anchor="end">time, about 11 minutes</text>
+            </g>
+            <path class="line" d="M0,70 C40,70 70,248 120,252 C240,262 420,176 600,128 C740,92 860,78 960,74"/>
+            <g class="marks" aria-hidden="true">
+              <circle class="mark" cx="120" cy="252" r="7"/>
+              <text class="label" x="140" y="282">turning point</text>
+              <circle class="mark" cx="735" cy="96" r="7"/>
+              <text class="label" x="735" y="160" text-anchor="middle">first crack</text>
+              <circle class="mark" cx="960" cy="74" r="7"/>
+              <text class="label" x="960" y="50" text-anchor="end">drop, then it ships</text>
+            </g>
+          </svg>
+          <figcaption>Our favorite graph. The other one is ping times.</figcaption>
+        </figure>
+      </section>
+
+      <section class="body">
+        <div>
+          <h2>Fresh coffee, fast</h2>
+          <p>Low Latency Coffee is a small-batch roastery in the Bay Area. Every bag is roasted after you order it and goes out within days, so it reaches you at its best instead of sitting on a shelf for months.</p>
+          <p>We're dialing in our first coffees now.</p>
+        </div>
+        <div>
+          <h2>Get the first roast</h2>
+          <p>Leave your email and we'll tell you when the first coffees are ready, plus where to find us at local markets.</p>
+          <!-- To connect this form: create a free form at https://formspree.io (or Kit / Buttondown)
+               and replace YOUR_FORM_ID below with your form's ID. -->
+          <form class="signup" action="https://formspree.io/f/mvkgejag" method="POST" novalidate>
+            <label for="email">Email address</label>
+            <input id="email" name="email" type="email" autocomplete="email" placeholder="you@example.com" required>
+            <button type="submit">Join the list</button>
+          </form>
+          <p class="status" role="status" aria-live="polite"></p>
+          <p class="hint">One email when the beans are ready. No spam, unsubscribe anytime.</p>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <span>Questions? <a href="mailto:ping@lowlatencycoffee.com">ping@lowlatencycoffee.com</a></span>
+      <span>&copy; <span id="year">2026</span> Low Latency Coffee</span>
+    </footer>
+  </div>
+
+<script>
+  document.getElementById("year").textContent = new Date().getFullYear();
+
+  const form = document.querySelector("form.signup");
+  const status = document.querySelector(".status");
+  const button = form.querySelector("button");
+  const input = form.querySelector("input");
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    status.className = "status";
+    if (!input.value || !input.checkValidity()) {
+      status.textContent = "Enter a valid email address, like you@example.com.";
+      status.classList.add("error");
+      input.focus();
+      return;
+    }
+    if (form.action.includes("mvkgejag")) {
+      status.textContent = "Signup isn't connected yet. Email ping@lowlatencycoffee.com to join the list.";
+      status.classList.add("error");
+      return;
+    }
+    button.disabled = true;
+    button.textContent = "Joining…";
+    try {
+      const res = await fetch(form.action, {
+        method: "POST",
+        body: new FormData(form),
+        headers: { Accept: "application/json" }
+      });
+      if (!res.ok) throw new Error();
+      form.reset();
+      status.textContent = "You're on the list. We'll email you when the first roast is ready.";
+    } catch {
+      status.textContent = "Couldn't join the list. Check your connection and try again.";
+      status.classList.add("error");
+    } finally {
+      button.disabled = false;
+      button.textContent = "Join the list";
+    }
+  });
+</script>
+</body>
+</html>
